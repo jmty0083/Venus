@@ -27,11 +27,6 @@ namespace Menelaus.Cognition.Model
         // LogId to TemplateId table
         private Dictionary<int, int> LogTemplateLookupTable { get; set; }
 
-        private Stopwatch matchwatch = new Stopwatch();
-        private Stopwatch mergewatch = new Stopwatch();
-        private Stopwatch absorbwatch = new Stopwatch();
-        private Stopwatch indexwatch = new Stopwatch();
-
         internal CognitionModel(double threshold, bool useTokenOnly)
         {
             this.LcsThreshold = threshold;
@@ -76,9 +71,7 @@ namespace Menelaus.Cognition.Model
                     template = absorbedTemplate;
                 }
 
-                this.indexwatch.Start();
                 this.BuildIndex(template);
-                this.indexwatch.Stop();
             }
         }
 
@@ -87,49 +80,25 @@ namespace Menelaus.Cognition.Model
             return this.Templates.Values.ToList();
         }
 
-        internal void PrintModelInfo()
-        {
-            Console.WriteLine("Template size: {0}", this.Templates.Values.Count);
-
-            Console.WriteLine("matching cost: {0}", matchwatch.Elapsed);
-            Console.WriteLine("merging cost: {0}", mergewatch.Elapsed);
-            Console.WriteLine("absorbing cost: {0}", absorbwatch.Elapsed);
-            Console.WriteLine("indexing cost: {0}", indexwatch.Elapsed);
-
-            //foreach (var template in this.Templates)
-            //{
-            //    Console.WriteLine(template.Value);
-            //}
-            //this.PrefixTree.PrintLcsTree();
-        }
 
         private bool TryMatchTemplate(Log log)
         {
-            matchwatch.Start();
-            //foreach (var templateId in this.Templates.Keys)
             var list = this.PrefixTree.FindTemplates(log.Words.ToList());
             foreach (var templateId in list)
             {
                 if (this.Templates[templateId].TryMatch(log))
                 {
-                    //this.TemplateLogClusterLookupTable[templateId].Add(logData.LogId);
                     this.Templates[templateId].LogIds.Add(log.LogId);
                     this.LogTemplateLookupTable.Add(log.LogId, templateId);
 
-                    matchwatch.Stop();
                     return true;
                 }
             }
-#if DEBUG
-            //Console.WriteLine("Aiming {0} / {1}, Pool Size {2}", list.Count, this.Templates.Count, this.UnmatchedLogPool.Count);
-#endif
-            matchwatch.Stop();
             return false;
         }
 
         private bool TryMergeLogData(Log log, out LogTemplate result)
         {
-            mergewatch.Start();
             result = null;
             if (this.UnmatchedLogPool.ContainsKey(log.Words.Length))
             {
@@ -138,13 +107,9 @@ namespace Menelaus.Cognition.Model
                 {
                     if (TemplateCorrection.TryMerge(log.Words, unmatchedLog.Words, this.LcsThreshold, this.LcsTokensOnly, out result))
                     {
-#if DEBUG
-                        //Console.WriteLine("Merging ({0}) and ({1}) to ({2})", log, unmatchedLog, result);
-#endif
                         pool.Remove(unmatchedLog);
                         result.LogIds = new List<int> { log.LogId, unmatchedLog.LogId };
 
-                        mergewatch.Stop();
                         return true;
                     }
                 }
@@ -155,13 +120,11 @@ namespace Menelaus.Cognition.Model
             }
 
             this.UnmatchedLogPool[log.Words.Length].Add(log);
-            mergewatch.Stop();
             return false;
         }
 
         private bool TryMergeTemplate(LogTemplate template, out LogTemplate result)
         {
-            mergewatch.Start();
             result = null;
             if (this.LengthIndexer.ContainsKey(template.Length))
             {
@@ -170,9 +133,6 @@ namespace Menelaus.Cognition.Model
                 {
                     if (TemplateCorrection.TryMerge(template.Sequence, this.Templates[tryTemplateId].Sequence, this.LcsThreshold, this.LcsTokensOnly, out result))
                     {
-#if DEBUG
-                        //Console.WriteLine("Merging ({0}) and ({1}) to ({2})", template, this.Templates[tryTemplateId], result);
-#endif
                         result.LogIds = template.LogIds
                             .Concat(this.Templates[tryTemplateId].LogIds)
                             .ToList();
@@ -180,18 +140,15 @@ namespace Menelaus.Cognition.Model
                         //this.Templates[templateId].EmergedId = result.TemplateId;
                         this.RemoveTemplate(tryTemplateId);
 
-                        mergewatch.Stop();
                         return true;
                     }
                 }
             }
-            mergewatch.Stop();
             return false;
         }
 
         private bool TryAbsorbTemplate(LogTemplate template, out LogTemplate result)
         {
-            absorbwatch.Start();
             result = null;
             if (this.TokenIndexer.ContainsKey(template.TokensHash))
             {
@@ -200,21 +157,16 @@ namespace Menelaus.Cognition.Model
                 {
                     if (TemplateCorrection.TryAbsorb(template, this.Templates[tryTemplateId], out result))
                     {
-#if DEBUG
-                        //Console.WriteLine("Absorbing ({0}) and ({1}) to ({2})", template, this.Templates[tryTemplateId], result);
-#endif
                         result.LogIds = template.LogIds
                             .Concat(this.Templates[tryTemplateId].LogIds)
                             .ToList();
 
                         this.RemoveTemplate(tryTemplateId);
-                        absorbwatch.Stop();
                         return true;
                     }
                 }
             }
 
-            absorbwatch.Stop();
             return false;
         }
 
@@ -257,9 +209,6 @@ namespace Menelaus.Cognition.Model
 
         private void RemoveTemplate(int templateId)
         {
-#if DEBUG
-            //Console.WriteLine("Removing {0}", templateId);
-#endif
             var template = this.Templates[templateId];
             this.LengthIndexer[template.Length].Remove(templateId);
             this.TokenIndexer[template.TokensHash].Remove(templateId);

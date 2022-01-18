@@ -13,10 +13,6 @@ namespace Menelaus.Cognition
 {
     internal class LogParser
     {
-            public Stopwatch Stopwatch { get; private set; }
-
-            public Stopwatch Preprocesswatch { get; private set; }
-
             private Regex LogFormatRegex { get; set; }
 
             private Regex[] ContentSubtitues { get; set; }
@@ -41,29 +37,20 @@ namespace Menelaus.Cognition
 
                 this.ContentSubtitues = subtitutionRegex.Select(x => new Regex(x)).ToArray();
                 this.Ignorance = ignorance.ToArray();
-
-                this.Stopwatch = new Stopwatch();
-                this.Preprocesswatch = new Stopwatch();
             }
 
             public void ParseFile(string inputpath)
             {
-                this.Stopwatch.Start();
-
                 int i = 0;
                 foreach (var line in File.ReadLines(inputpath))
                 {
                     this.ParseLineNoLookup(line, ++i);
                 }
-
-                this.Stopwatch.Stop();
                 GC.Collect();
             }
 
             public void ParseFile(string inputpath, string outputpath)
             {
-                this.Stopwatch.Start();
-
                 var logdata = File.ReadLines(inputpath)
                     .Select((x, i) => this.ParseLineNoLookup(x, i + 1))
                     .Where(x => !(x is null))
@@ -71,7 +58,6 @@ namespace Menelaus.Cognition
 
                 this.OutputToFile(logdata, outputpath);
 
-                this.Stopwatch.Stop();
                 GC.Collect();
             }
 
@@ -99,27 +85,17 @@ namespace Menelaus.Cognition
                 return true;
             }
 
-            public void PrintModelInfo()
-            {
-                //Console.WriteLine("Template size {0}", this.Model.GetAllTemplates());
-                this.Model.PrintModelInfo();
-                Console.WriteLine("preprocessing cost: {0}", this.Preprocesswatch.Elapsed);
-            }
-
             private Log ParseLineNoLookup(string line, int lineNumber)
             {
                 //Console.WriteLine("Parsing: {0}", line);
 
-                this.Preprocesswatch.Start();
                 if (this.Preprocess(line, lineNumber, out Log log))
                 {
-                    this.Preprocesswatch.Stop();
                     this.Model.ParseLog(log);
                     return log;
                 }
                 else
                 {
-                    this.Preprocesswatch.Stop();
                     return null;
                 }
             }
