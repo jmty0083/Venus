@@ -1,0 +1,30 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Backgrounds -->
+    <SolidColorBrush x:Key="WindowBg"        Color="#F5F5F5"/>
+    <SolidColorBrush x:Key="SurfaceBg"       Color="#E8E8E8"/>
+    <SolidColorBrush x:Key="SurfaceAltBg"    Color="#F0F0F0"/>
+    <SolidColorBrush x:Key="InputBg"         Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="HoverBg"         Color="#DCDCDC"/>
+    <SolidColorBrush x:Key="HighlightBg"     Color="#D0D0D0"/>
+
+    <!-- Foregrounds -->
+    <SolidColorBrush x:Key="PrimaryFg"       Color="#1E1E1E"/>
+    <SolidColorBrush x:Key="MutedFg"         Color="#606060"/>
+    <SolidColorBrush x:Key="SubtleFg"        Color="#505050"/>
+    <SolidColorBrush x:Key="DisabledFg"      Color="#AAAAAA"/>
+
+    <!-- Borders / lines -->
+    <SolidColorBrush x:Key="BorderColor"     Color="#CCCCCC"/>
+    <SolidColorBrush x:Key="GridLineColor"   Color="#E8E8E8"/>
+
+    <!-- Selection -->
+    <SolidColorBrush x:Key="SelectionBg"     Color="#0078D4"/>
+    <SolidColorBrush x:Key="SelectionFg"     Color="#FFFFFF"/>
+
+    <!-- Menu hover -->
+    <SolidColorBrush x:Key="MenuHighlightBg" Color="#0078D4"/>
+    <SolidColorBrush x:Key="MenuHighlightFg" Color="#FFFFFF"/>
+
+</ResourceDictionary>

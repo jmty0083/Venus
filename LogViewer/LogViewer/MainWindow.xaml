@@ -1,0 +1,176 @@
+<Window x:Class="LogViewer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Log Viewer" Height="600" Width="1200"
+        Icon="logviewer.png"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBg}">
+    <DockPanel>
+        <Menu DockPanel.Dock="Top"
+              Background="{DynamicResource SurfaceBg}"
+              Foreground="{DynamicResource PrimaryFg}">
+            <Menu.Resources>
+                <Style TargetType="MenuItem">
+                    <Setter Property="Foreground"  Value="{DynamicResource PrimaryFg}"/>
+                    <Setter Property="Background"  Value="{DynamicResource SurfaceBg}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource MenuHighlightBg}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource MenuHighlightFg}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource DisabledFg}"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+                <Style TargetType="Separator">
+                    <Setter Property="Background" Value="{DynamicResource BorderColor}"/>
+                    <Setter Property="Margin"     Value="4,2"/>
+                </Style>
+            </Menu.Resources>
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open File..." Click="OpenFile_Click" InputGestureText="Ctrl+O"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Click="Exit_Click" InputGestureText="Alt+F4"/>
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="_Paste from Clipboard" Click="PasteClipboard_Click" InputGestureText="Ctrl+V"/>
+            </MenuItem>
+            <MenuItem Header="_Patterns">
+                <MenuItem Header="_Manage Patterns..." Click="ManagePatterns_Click"/>
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="_Dark Theme"   Click="ThemeDark_Click"/>
+                <MenuItem Header="_Light Theme"  Click="ThemeLight_Click"/>
+                <MenuItem Header="_System Theme" Click="ThemeSystem_Click"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- Search bar -->
+        <Border DockPanel.Dock="Top"
+                Background="{DynamicResource SurfaceBg}"
+                BorderBrush="{DynamicResource BorderColor}"
+                BorderThickness="0,0,0,1">
+            <Border.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="Background"  Value="{DynamicResource SurfaceBg}"/>
+                    <Setter Property="Foreground"  Value="{DynamicResource PrimaryFg}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+                    <Setter Property="Padding"     Value="10,3"/>
+                    <Setter Property="Cursor"      Value="Hand"/>
+                    <Setter Property="MinWidth"    Value="48"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource HighlightBg}"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+                <Style TargetType="TextBox">
+                    <Setter Property="Background"               Value="{DynamicResource InputBg}"/>
+                    <Setter Property="Foreground"               Value="{DynamicResource PrimaryFg}"/>
+                    <Setter Property="BorderBrush"              Value="{DynamicResource BorderColor}"/>
+                    <Setter Property="CaretBrush"               Value="{DynamicResource PrimaryFg}"/>
+                    <Setter Property="SelectionBrush"           Value="{DynamicResource SelectionBg}"/>
+                    <Setter Property="Padding"                  Value="5,3"/>
+                    <Setter Property="FontFamily"               Value="Consolas, Courier New, monospace"/>
+                    <Setter Property="FontSize"                 Value="12"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                </Style>
+            </Border.Resources>
+            <DockPanel LastChildFill="True" Margin="8,4">
+                <TextBlock DockPanel.Dock="Left"
+                           Text="Search:"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource SubtleFg}"
+                           Margin="0,0,8,0"/>
+                <TextBlock DockPanel.Dock="Right"
+                           x:Name="SearchStatus"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource MutedFg}"
+                           MinWidth="60"
+                           Margin="8,0,0,0"/>
+                <Button    DockPanel.Dock="Right"
+                           Content="Next"
+                           Click="SearchNext_Click"
+                           Margin="4,0,0,0"/>
+                <Button    DockPanel.Dock="Right"
+                           Content="Prev"
+                           Click="SearchPrev_Click"
+                           Margin="4,0,0,0"/>
+                <TextBox   x:Name="SearchBox"
+                           KeyDown="SearchBox_KeyDown"
+                           TextChanged="SearchBox_TextChanged"/>
+            </DockPanel>
+        </Border>
+
+        <StatusBar DockPanel.Dock="Bottom"
+                   Background="{DynamicResource SurfaceBg}"
+                   Foreground="{DynamicResource MutedFg}">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusText"
+                           Text="No content loaded — use File > Open, Edit > Paste, or pipe input on startup."/>
+            </StatusBarItem>
+        </StatusBar>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="100" MinHeight="40"/>
+            </Grid.RowDefinitions>
+
+            <DataGrid Grid.Row="0"
+                      x:Name="LogGrid"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      CanUserReorderColumns="True"
+                      CanUserResizeColumns="True"
+                      CanUserSortColumns="False"
+                      GridLinesVisibility="Horizontal"
+                      HorizontalGridLinesBrush="{DynamicResource GridLineColor}"
+                      HeadersVisibility="Column"
+                      SelectionMode="Single"
+                      SelectionUnit="FullRow"
+                      BorderThickness="0"
+                      Background="{DynamicResource WindowBg}"
+                      RowBackground="{DynamicResource WindowBg}"
+                      Foreground="{DynamicResource PrimaryFg}"
+                      FontFamily="Consolas, Courier New, monospace"
+                      FontSize="12"
+                      ColumnHeaderHeight="28"
+                      RowHeight="22"
+                      VirtualizingPanel.IsVirtualizing="True"
+                      VirtualizingPanel.VirtualizationMode="Recycling"
+                      EnableRowVirtualization="True"
+                      EnableColumnVirtualization="False"
+                      SelectionChanged="LogGrid_SelectionChanged"/>
+
+            <GridSplitter Grid.Row="1"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Background="{DynamicResource BorderColor}"
+                          ResizeDirection="Rows"
+                          ResizeBehavior="PreviousAndNext"/>
+
+            <Border Grid.Row="2"
+                    Background="{DynamicResource SurfaceBg}"
+                    BorderBrush="{DynamicResource BorderColor}"
+                    BorderThickness="0,1,0,0">
+                <TextBox x:Name="DetailPanel"
+                         IsReadOnly="True"
+                         TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"
+                         Background="{DynamicResource SurfaceBg}"
+                         Foreground="{DynamicResource PrimaryFg}"
+                         SelectionBrush="{DynamicResource SelectionBg}"
+                         BorderThickness="0"
+                         Padding="8,4"
+                         FontFamily="Consolas, Courier New, monospace"
+                         FontSize="12"/>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Window>
