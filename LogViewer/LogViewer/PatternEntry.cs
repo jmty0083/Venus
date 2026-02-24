@@ -1,6 +1,6 @@
 using System;
 
-namespace LogViewer
+namespace Menelaus.Tian.Venus.LogViewer
 {
     /// <summary>
     /// A saved parsing rule: a friendly name paired with a .NET regex that contains

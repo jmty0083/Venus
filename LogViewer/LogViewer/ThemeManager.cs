@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using Microsoft.Win32;
 
-namespace LogViewer
+namespace Menelaus.Tian.Venus.LogViewer
 {
     public enum AppTheme
     {

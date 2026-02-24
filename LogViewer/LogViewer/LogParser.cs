@@ -3,7 +3,7 @@ using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace LogViewer
+namespace Menelaus.Tian.Venus.LogViewer
 {
     public static class LogParser
     {

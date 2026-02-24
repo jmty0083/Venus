@@ -9,7 +9,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.Win32;
 
-namespace LogViewer
+namespace Menelaus.Tian.Venus.LogViewer
 {
     public partial class MainWindow : Window
     {

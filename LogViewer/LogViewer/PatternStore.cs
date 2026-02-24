@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
-namespace LogViewer
+namespace Menelaus.Tian.Venus.LogViewer
 {
     /// <summary>
     /// Persists patterns and app settings to %APPDATA%\LogViewer\.

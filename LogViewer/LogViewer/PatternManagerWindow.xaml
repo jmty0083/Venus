@@ -1,4 +1,4 @@
-<Window x:Class="LogViewer.PatternManagerWindow"
+<Window x:Class="Menelaus.Tian.Venus.LogViewer.PatternManagerWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Manage Patterns" Height="520" Width="760"
