@@ -35,8 +35,11 @@ if ($BinDir -ne "") {
         exit 1
     }
     $targetDir = $resolved.Path
+} elseif (Test-Path (Join-Path $scriptDir "view.exe")) {
+    # Script is sitting next to the exe (distributed/published layout) — use its own directory
+    $targetDir = $scriptDir
 } else {
-    # Search common build output locations (Debug before Release, newest framework first)
+    # Script is at the repo root — search common build output locations
     $candidates = @(
         "LogViewer\bin\Debug\net10.0-windows",
         "LogViewer\bin\Release\net10.0-windows",
