@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 
-namespace LogViewer
+namespace Menelaus.Tian.Venus.LogViewer
 {
     public partial class PatternManagerWindow : Window
     {

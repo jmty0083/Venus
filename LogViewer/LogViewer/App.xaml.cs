@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Windows;
 
-namespace LogViewer
+namespace Menelaus.Tian.Venus.LogViewer
 {
     public partial class App : Application
     {

@@ -4,7 +4,7 @@ A lightweight WPF desktop application for viewing and navigating structured log 
 
 ## Features
 
-- **Three input modes** — open a file via the menu, paste text from the clipboard, or pipe content directly on the command line (`type app.log | LogViewer.exe`)
+- **Three input modes** — open a file via the menu, paste text from the clipboard, or pipe content directly on the command line (`type app.log | view.exe`)
 - **Regex-based parsing** — define named-capture-group patterns to split each log line into typed columns (timestamp, level, message, etc.)
 - **Auto-detection** — on load, the app tests each saved pattern against the first 50 lines and picks the best match automatically
 - **Pattern manager** — create, edit, delete, and star (set as current) patterns; patterns are stored in `%APPDATA%\LogViewer\patterns.json`
@@ -26,17 +26,41 @@ dotnet build LogViewer/LogViewer.csproj
 
 Or open the solution in Visual Studio 2022+ and press F5.
 
+The build produces two executables in the output directory:
+
+| File | Description |
+|---|---|
+| `LogViewer.exe` | Primary executable |
+| `view.exe` | Alias — identical behaviour, shorter to type |
+
+## Installation (add to PATH)
+
+Run the installer script from the repo root after building:
+
+```powershell
+.\install.ps1
+```
+
+This finds the build output automatically and adds it to your **User PATH** (no admin required). Open a new terminal and the `view` and `LogViewer` commands will be available globally.
+
+To point to a specific build directory:
+
+```powershell
+.\install.ps1 -BinDir ".\LogViewer\bin\Release\net10.0-windows"
+```
+
 ## Usage
 
 **Open a file:**
 ```
+view path\to\app.log
 LogViewer.exe path\to\app.log
 ```
 
 **Pipe from another command:**
 ```
-type app.log | LogViewer.exe
-Get-Content app.log | LogViewer.exe
+type app.log | view
+Get-Content app.log | view
 ```
 
 **Open interactively:**
