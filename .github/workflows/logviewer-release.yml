@@ -43,6 +43,7 @@ on:
     branches: [ "main" ]
     paths:
       - 'LogViewer/**'
+  workflow_dispatch:
   pull_request:
     branches: [ "main" ]
     paths:
