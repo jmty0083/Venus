@@ -58,7 +58,7 @@ jobs:
 
     strategy:
       matrix:
-        configuration: [Debug, Release]
+        configuration: [Release]
 
     runs-on: windows-latest  # For a list of available runner types, refer to
                              # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
@@ -121,16 +121,19 @@ jobs:
           -p:DebugType=None `
           -p:DebugSymbols=false `
           -p:Version=${{ steps.version.outputs.version }} `
+          -p:FileVersion=${{ steps.version.outputs.version }} `
+          -p:AssemblyVersion=${{ steps.version.outputs.version }} `
           -o publish
 
     - name: Zip output
-      run: Compress-Archive -Path publish/* -DestinationPath LogViewer.zip
+      #run: Compress-Archive -Path publish/* -DestinationPath LogViewer.zip
+      run: Compress-Archive publish/* LogViewer-${{ steps.version.outputs.version }}.zip
       
     # 🔹 Create or update daily release
     - name: Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: daily
-        name: Daily Build
-        files: LogViewer.zip
+        tag_name: daily-${{ steps.version.outputs.version }}
+        name: Regular Build ${{ steps.version.outputs.version }}
+        files: LogViewer-${{ steps.version.outputs.version }}.zip
   
