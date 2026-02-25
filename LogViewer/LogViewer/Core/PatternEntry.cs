@@ -18,6 +18,12 @@ namespace Menelaus.Tian.Venus.LogViewer
         public string Pattern { get; set; } = string.Empty;
 
         /// <summary>
+        /// The column that receives non-matching lines (e.g. stack-trace continuations).
+        /// When null or empty, the last named capture group is used as the fallback.
+        /// </summary>
+        public string? TextColumn { get; set; }
+
+        /// <summary>
         /// UTC creation timestamp. Used to determine evaluation order during auto-detection:
         /// older (more established) patterns are tried before newer ones.
         /// </summary>

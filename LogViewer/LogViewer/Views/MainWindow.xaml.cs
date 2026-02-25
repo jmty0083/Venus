@@ -22,6 +22,7 @@ namespace Menelaus.Tian.Venus.LogViewer
         public MainWindow(string? initialContent = null, string? sourceLabel = null)
         {
             InitializeComponent();
+            SourceInitialized += (_, _) => ThemeManager.ApplyTitleBar(this);
 
             if (initialContent != null)
             {
@@ -56,7 +57,7 @@ namespace Menelaus.Tian.Venus.LogViewer
                 var current = patterns.FirstOrDefault(entry => entry.Id == currentPatternId);
                 if (current != null && LogParser.TestPattern(text, current.Pattern) >= Threshold)
                 {
-                    return (current, LogParser.Parse(text, current.Pattern));
+                    return (current, LogParser.Parse(text, current.Pattern, current.TextColumn));
                 }
             }
 
@@ -68,7 +69,7 @@ namespace Menelaus.Tian.Venus.LogViewer
                     // Persist the newly chosen pattern so it becomes the fast-path next time
                     currentPatternId = entry.Id;
                     PatternStore.SetCurrentPatternId(entry.Id);
-                    return (entry, LogParser.Parse(text, entry.Pattern));
+                    return (entry, LogParser.Parse(text, entry.Pattern, entry.TextColumn));
                 }
             }
 

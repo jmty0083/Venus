@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>Menelaus.Tian.Venus.LogViewer</RootNamespace>
     <AssemblyName>LogViewer</AssemblyName>
-    <ApplicationIcon>logviewer.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\logviewer.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="logviewer.png"/>
+    <Resource Include="Assets\logviewer.png"/>
   </ItemGroup>
 
   <ItemGroup>

@@ -11,7 +11,7 @@ A lightweight WPF desktop application for viewing and navigating structured log 
 - **Column control** — right-click any column header to show/hide columns; columns are also resizable and reorderable
 - **Detail panel** — selecting a row shows the original raw log line in a resizable panel below the grid
 - **Search** — type in the search bar and press Enter or Next/Prev to navigate matches across all visible columns
-- **Themes** — Dark, Light, and System (follows Windows setting); preference is saved between sessions
+- **Themes** — Dark, Light, and System (follows Windows setting); the title bar and scroll bars match the selected theme; preference is saved between sessions
 
 ## Requirements
 
@@ -79,4 +79,4 @@ This produces columns: `timestamp`, `level`, `source`, `text`.
 
 Lines that do not match (e.g. continuation lines or stack traces) are stored as raw text in the last column, keeping them visible and searchable.
 
-Open *Patterns > Manage Patterns* to add and test patterns.
+Open *Patterns > Manage Patterns* to add and test patterns. A brief **Saved ✓** confirmation appears in the window after each successful save.

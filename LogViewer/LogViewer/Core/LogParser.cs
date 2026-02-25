@@ -54,14 +54,15 @@ namespace Menelaus.Tian.Venus.LogViewer
         /// in the "text" column (or the last named column if none is named "text").
         /// Empty/whitespace lines are skipped.
         /// </summary>
-        public static DataTable Parse(string text, string pattern)
+        public static DataTable Parse(string text, string pattern, string? explicitTextColumn = null)
         {
             var regex = new Regex(pattern, RegexOptions.Compiled);
             var groupNames = GetColumnNames(pattern);
 
-            // Prefer a group named "text" as the fallback column for non-matching lines;
-            // if none exists, use the last named group so continuation lines remain visible.
-            string textColumn = groupNames.Contains("text") ? "text"
+            // Use the explicitly designated text column when provided and valid;
+            // otherwise fall back to the last named group.
+            string textColumn = !string.IsNullOrEmpty(explicitTextColumn) && groupNames.Contains(explicitTextColumn)
+                              ? explicitTextColumn
                               : groupNames.Count > 0 ? groupNames[^1]
                               : "text";
 
