@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -5,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Threading;
 
 namespace Menelaus.Tian.Venus.LogViewer
 {
@@ -13,10 +15,14 @@ namespace Menelaus.Tian.Venus.LogViewer
         private List<PatternEntry> patterns  = [];
         private string?            currentId;  // ID of the pattern currently starred (active in main window)
         private string?            editingId;  // ID of the entry loaded in the edit form; null = new entry mode
+        private DispatcherTimer?   _saveStatusTimer;
+
+        private const string DefaultTextColumnLabel = "(last column — default)";
 
         public PatternManagerWindow()
         {
             InitializeComponent();
+            SourceInitialized += (_, _) => ThemeManager.ApplyTitleBar(this);
             currentId = PatternStore.GetCurrentPatternId();
             Refresh();
             SetButtonStates();
@@ -103,6 +109,51 @@ namespace Menelaus.Tian.Venus.LogViewer
             return style;
         }
 
+        // ── Text column helpers ───────────────────────────────────────────────
+
+        /// <summary>
+        /// Rebuilds the Text Column ComboBox items from the named groups in the current
+        /// pattern text. Tries to preserve the previously selected column name.
+        /// </summary>
+        private void UpdateTextColumnOptions()
+        {
+            string? previous = GetSelectedTextColumn();
+
+            TextColumnBox.Items.Clear();
+            TextColumnBox.Items.Add(DefaultTextColumnLabel);
+
+            string pattern = PatternBox.Text.Trim();
+            if (!string.IsNullOrEmpty(pattern))
+            {
+                try
+                {
+                    foreach (var name in LogParser.GetColumnNames(pattern))
+                        TextColumnBox.Items.Add(name);
+                }
+                catch { /* invalid regex while typing — ignore */ }
+            }
+
+            // Restore the previous column if it still exists in the new pattern
+            if (previous != null && TextColumnBox.Items.Contains(previous))
+                TextColumnBox.SelectedItem = previous;
+            else
+                TextColumnBox.SelectedIndex = 0;
+        }
+
+        /// <summary>
+        /// Returns the selected text column name, or null when the default (last column) is chosen.
+        /// </summary>
+        private string? GetSelectedTextColumn()
+        {
+            var selected = TextColumnBox.SelectedItem as string;
+            return string.IsNullOrEmpty(selected) || selected == DefaultTextColumnLabel ? null : selected;
+        }
+
+        private void PatternBox_TextChanged(object sender, TextChangedEventArgs eventArgs)
+        {
+            UpdateTextColumnOptions();
+        }
+
         // ── Selection ─────────────────────────────────────────────────────────
 
         private void PatternGrid_SelectionChanged(object sender, SelectionChangedEventArgs eventArgs)
@@ -112,8 +163,14 @@ namespace Menelaus.Tian.Venus.LogViewer
             {
                 editingId       = entry.Id;
                 NameBox.Text    = entry.Name;
-                PatternBox.Text = entry.Pattern;
+                PatternBox.Text = entry.Pattern;  // triggers UpdateTextColumnOptions via TextChanged
                 EditLabel.Text  = $"Edit: {entry.Name}";
+
+                // Restore the saved text column selection (UpdateTextColumnOptions already ran)
+                if (!string.IsNullOrEmpty(entry.TextColumn) && TextColumnBox.Items.Contains(entry.TextColumn))
+                    TextColumnBox.SelectedItem = entry.TextColumn;
+                else
+                    TextColumnBox.SelectedIndex = 0;
             }
             SetButtonStates();
         }
@@ -142,7 +199,7 @@ namespace Menelaus.Tian.Venus.LogViewer
         {
             editingId               = null;
             NameBox.Text             = "";
-            PatternBox.Text          = "";
+            PatternBox.Text          = "";  // triggers UpdateTextColumnOptions via TextChanged
             EditLabel.Text           = "New Pattern";
             PatternGrid.SelectedItem = null;
             NameBox.Focus();
@@ -185,20 +242,35 @@ namespace Menelaus.Tian.Venus.LogViewer
                 var existing = patterns.FirstOrDefault(patternEntry => patternEntry.Id == editingId);
                 if (existing != null)
                 {
-                    existing.Name    = name;
-                    existing.Pattern = pattern;
+                    existing.Name       = name;
+                    existing.Pattern    = pattern;
+                    existing.TextColumn = GetSelectedTextColumn();
                 }
             }
             else
             {
                 // Create a new entry and switch to edit mode for it
-                var entry  = new PatternEntry { Name = name, Pattern = pattern };
+                var entry  = new PatternEntry { Name = name, Pattern = pattern, TextColumn = GetSelectedTextColumn() };
                 patterns.Add(entry);
                 editingId = entry.Id;
             }
 
             PatternStore.Save(patterns);
             Refresh();
+            ShowSaveConfirmation();
+        }
+
+        private void ShowSaveConfirmation()
+        {
+            SaveStatus.Text = "Saved ✓";
+            _saveStatusTimer?.Stop();
+            _saveStatusTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.5) };
+            _saveStatusTimer.Tick += (_, _) =>
+            {
+                SaveStatus.Text = "";
+                _saveStatusTimer.Stop();
+            };
+            _saveStatusTimer.Start();
         }
 
         private void Delete_Click(object sender, RoutedEventArgs eventArgs)

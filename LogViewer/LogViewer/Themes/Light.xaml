@@ -27,4 +27,13 @@
     <SolidColorBrush x:Key="MenuHighlightBg" Color="#0078D4"/>
     <SolidColorBrush x:Key="MenuHighlightFg" Color="#FFFFFF"/>
 
+    <!-- Confirmation feedback -->
+    <SolidColorBrush x:Key="SaveConfirmFg"   Color="#217A3C"/>
+
+    <!-- Scroll bar -->
+    <SolidColorBrush x:Key="ScrollTrackBg"      Color="#F0F0F0"/>
+    <SolidColorBrush x:Key="ScrollThumbBg"       Color="#BBBBBB"/>
+    <SolidColorBrush x:Key="ScrollThumbHoverBg"  Color="#999999"/>
+    <SolidColorBrush x:Key="ScrollThumbDragBg"   Color="#777777"/>
+
 </ResourceDictionary>
