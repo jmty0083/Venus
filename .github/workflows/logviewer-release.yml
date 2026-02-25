@@ -70,7 +70,9 @@ jobs:
     - name: Check for changes
       id: changes
       run: |
-        git diff --quiet HEAD~1 HEAD -- LogViewer
+        git fetch origin main
+        git diff --quiet origin/main HEAD -- LogViewer
+    
         if ($LASTEXITCODE -eq 0) {
           echo "changed=false" >> $env:GITHUB_OUTPUT
         } else {
