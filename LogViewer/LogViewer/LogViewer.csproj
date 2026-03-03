@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="OpenAI" Version="2.1.0"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="..\install.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>

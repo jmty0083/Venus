@@ -6,46 +6,95 @@
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource WindowBg}">
     <DockPanel>
-        <Menu DockPanel.Dock="Top"
-              Background="{DynamicResource SurfaceBg}"
-              Foreground="{DynamicResource PrimaryFg}">
-            <Menu.Resources>
-                <Style TargetType="MenuItem">
-                    <Setter Property="Foreground"  Value="{DynamicResource PrimaryFg}"/>
-                    <Setter Property="Background"  Value="{DynamicResource SurfaceBg}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
-                    <Style.Triggers>
-                        <Trigger Property="IsHighlighted" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource MenuHighlightBg}"/>
-                            <Setter Property="Foreground" Value="{DynamicResource MenuHighlightFg}"/>
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Foreground" Value="{DynamicResource DisabledFg}"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-                <Style TargetType="Separator">
-                    <Setter Property="Background" Value="{DynamicResource BorderColor}"/>
-                    <Setter Property="Margin"     Value="4,2"/>
-                </Style>
-            </Menu.Resources>
-            <MenuItem Header="_File">
-                <MenuItem Header="_Open File..." Click="OpenFile_Click" InputGestureText="Ctrl+O"/>
-                <Separator/>
-                <MenuItem Header="E_xit" Click="Exit_Click" InputGestureText="Alt+F4"/>
-            </MenuItem>
-            <MenuItem Header="_Edit">
-                <MenuItem Header="_Paste from Clipboard" Click="PasteClipboard_Click" InputGestureText="Ctrl+V"/>
-            </MenuItem>
-            <MenuItem Header="_Patterns">
-                <MenuItem Header="_Manage Patterns..." Click="ManagePatterns_Click"/>
-            </MenuItem>
-            <MenuItem Header="_View">
-                <MenuItem Header="_Dark Theme"   Click="ThemeDark_Click"/>
-                <MenuItem Header="_Light Theme"  Click="ThemeLight_Click"/>
-                <MenuItem Header="_System Theme" Click="ThemeSystem_Click"/>
-            </MenuItem>
-        </Menu>
+        <!-- Menu bar: left-side menus + right-side AI config button -->
+        <DockPanel DockPanel.Dock="Top"
+                   Background="{DynamicResource SurfaceBg}">
+
+            <!-- AI config button — docked right so the Menu fills the rest -->
+            <Button x:Name="AiConfigBtn"
+                    DockPanel.Dock="Right"
+                    Click="AiConfigBtn_Click"
+                    Content="Configure AI"
+                    BorderThickness="1,0,0,0"
+                    Padding="14,0"
+                    MinWidth="130"
+                    FocusVisualStyle="{x:Null}">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background"            Value="{DynamicResource SurfaceBg}"/>
+                        <Setter Property="Foreground"            Value="{DynamicResource MutedFg}"/>
+                        <Setter Property="BorderBrush"           Value="{DynamicResource BorderColor}"/>
+                        <Setter Property="Cursor"                Value="Hand"/>
+                        <Setter Property="FocusVisualStyle"      Value="{x:Null}"/>
+                        <Setter Property="OverridesDefaultStyle" Value="True"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            Padding="{TemplateBinding Padding}">
+                                        <TextBlock Text="{TemplateBinding Content}"
+                                                   Foreground="{TemplateBinding Foreground}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   MaxWidth="220"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource MenuHighlightBg}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource MenuHighlightFg}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+
+            <!-- Standard menu strip fills the remaining space -->
+            <Menu Background="{DynamicResource SurfaceBg}"
+                  Foreground="{DynamicResource PrimaryFg}">
+                <Menu.Resources>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="Foreground"  Value="{DynamicResource PrimaryFg}"/>
+                        <Setter Property="Background"  Value="{DynamicResource SurfaceBg}"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource MenuHighlightBg}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource MenuHighlightFg}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource DisabledFg}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                    <Style TargetType="Separator">
+                        <Setter Property="Background" Value="{DynamicResource BorderColor}"/>
+                        <Setter Property="Margin"     Value="4,2"/>
+                    </Style>
+                </Menu.Resources>
+                <MenuItem Header="_File">
+                    <MenuItem Header="_Open File..." Click="OpenFile_Click" InputGestureText="Ctrl+O"/>
+                    <Separator/>
+                    <MenuItem Header="E_xit" Click="Exit_Click" InputGestureText="Alt+F4"/>
+                </MenuItem>
+                <MenuItem Header="_Edit">
+                    <MenuItem Header="_Paste from Clipboard" Click="PasteClipboard_Click" InputGestureText="Ctrl+V"/>
+                </MenuItem>
+                <MenuItem Header="_Patterns">
+                    <MenuItem Header="_Manage Patterns..." Click="ManagePatterns_Click"/>
+                </MenuItem>
+                <MenuItem Header="_View">
+                    <MenuItem Header="_Dark Theme"   Click="ThemeDark_Click"/>
+                    <MenuItem Header="_Light Theme"  Click="ThemeLight_Click"/>
+                    <MenuItem Header="_System Theme" Click="ThemeSystem_Click"/>
+                </MenuItem>
+            </Menu>
+        </DockPanel>
 
         <!-- Search bar -->
         <Border DockPanel.Dock="Top"
