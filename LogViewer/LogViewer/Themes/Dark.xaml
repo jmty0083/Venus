@@ -29,6 +29,7 @@
 
     <!-- Confirmation feedback -->
     <SolidColorBrush x:Key="SaveConfirmFg"   Color="#4DB66B"/>
+    <SolidColorBrush x:Key="AzureExpiredFg"  Color="#E5A638"/>
 
     <!-- Scroll bar -->
     <SolidColorBrush x:Key="ScrollTrackBg"      Color="#1E1E1E"/>

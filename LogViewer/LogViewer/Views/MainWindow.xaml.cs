@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -24,9 +26,11 @@ namespace Menelaus.Tian.Venus.LogViewer
             InitializeComponent();
             SourceInitialized += (_, _) => ThemeManager.ApplyTitleBar(this);
 
+            UpdateAiButton();
+
             if (initialContent != null)
             {
-                LoadContent(initialContent, sourceLabel ?? "Unknown source");
+                _ = LoadContentAsync(initialContent, sourceLabel ?? "Unknown source");
             }
         }
 
@@ -37,19 +41,16 @@ namespace Menelaus.Tian.Venus.LogViewer
         /// Detection order:
         ///   1. The current (last-used) pattern — avoids re-testing when reloading the same log.
         ///   2. All saved patterns ordered by creation date (oldest first, i.e. most established).
-        ///   3. Raw fallback — one "line" column, no structured parsing.
+        ///   3. AI inference — asks the configured LLM to generate a pattern and saves it.
+        ///   4. Raw fallback — one "line" column, no structured parsing.
         /// A pattern must match at least 60 % of sampled lines to be considered a hit.
         /// </summary>
-        private (PatternEntry? entry, DataTable table) AutoDetectAndParse(string text)
+        private async Task<(PatternEntry? entry, DataTable table)> AutoDetectAndParseAsync(
+            string text, string sourceLabel)
         {
             // At least 60 % of sampled lines must match for a pattern to be accepted
             const double Threshold = 0.6;
             var patterns = PatternStore.Load();
-
-            if (patterns.Count == 0)
-            {
-                return (null, LogParser.ParseRaw(text));
-            }
 
             // 1. Try the current pattern first — fast path for repeated loads of the same log type
             if (currentPatternId != null)
@@ -61,25 +62,91 @@ namespace Menelaus.Tian.Venus.LogViewer
                 }
             }
 
-            // 2. Try all patterns ordered by creation time (older = more battle-tested)
+            // 2. Try all saved patterns ordered by creation time (older = more battle-tested)
             foreach (var entry in patterns.OrderBy(entry => entry.CreatedAt))
             {
                 if (LogParser.TestPattern(text, entry.Pattern) >= Threshold)
                 {
-                    // Persist the newly chosen pattern so it becomes the fast-path next time
                     currentPatternId = entry.Id;
                     PatternStore.SetCurrentPatternId(entry.Id);
                     return (entry, LogParser.Parse(text, entry.Pattern, entry.TextColumn));
                 }
             }
 
-            // 3. Nothing matched — raw fallback (single "line" column)
+            // 3. AI inference — ask the LLM to generate a pattern before giving up
+            var aiEntry = await TryAiPatternAsync(text, sourceLabel, Threshold);
+            if (aiEntry != null)
+            {
+                currentPatternId = aiEntry.Id;
+                PatternStore.SetCurrentPatternId(aiEntry.Id);
+                return (aiEntry, LogParser.Parse(text, aiEntry.Pattern, aiEntry.TextColumn));
+            }
+
+            // 4. Nothing matched — raw fallback (single "line" column)
             return (null, LogParser.ParseRaw(text));
+        }
+
+        /// <summary>
+        /// Calls the configured AI to infer a regex from a sample of <paramref name="text"/>.
+        /// Saves the resulting pattern to the store if it meets the match threshold.
+        /// Returns null if AI is not configured, the call fails, or the pattern doesn't match well enough.
+        /// </summary>
+        private async Task<PatternEntry?> TryAiPatternAsync(
+            string text, string sourceLabel, double threshold)
+        {
+            var cfg = AiConfig.Load();
+            if (cfg == null) return null;
+
+            // Select the LLM implementation based on the active configuration tab
+            ILLMParsing? llm = cfg.ActiveTab switch
+            {
+                0 when !string.IsNullOrWhiteSpace(cfg.LlmUrl)
+                    => new LLMParsing(cfg.LlmUrl),
+
+                1 when !string.IsNullOrWhiteSpace(cfg.Endpoint)
+                    && !string.IsNullOrWhiteSpace(cfg.ApiKey)
+                    => new OpenAIParsing(cfg.Endpoint, cfg.ApiKey, cfg.Model),
+
+                _ => null   // tab 2 (script plugin) not yet implemented
+            };
+
+            if (llm == null) return null;
+
+            var sampleLines = text.Split('\n')
+                                  .Select(l => l.TrimEnd('\r'))
+                                  .Where(l => !string.IsNullOrWhiteSpace(l))
+                                  .Take(20)
+                                  .ToList();
+
+            if (sampleLines.Count < 3) return null;
+
+            StatusText.Text = $"{sourceLabel}  |  Asking AI for a pattern…";
+
+            string? pattern = await llm.TryParsingAsync(sampleLines);
+
+            if (string.IsNullOrWhiteSpace(pattern)) return null;
+            if (LogParser.TestPattern(text, pattern) < threshold) return null;
+
+            string label = cfg.ActiveTab == 1 ? $"AI: {cfg.Model}" : "AI: LLM Service";
+
+            var entry = new PatternEntry
+            {
+                Name       = label,
+                Pattern    = pattern,
+                TextColumn = "text",
+                CreatedAt  = DateTime.UtcNow
+            };
+
+            var saved = PatternStore.Load();
+            saved.Add(entry);
+            PatternStore.Save(saved);
+
+            return entry;
         }
 
         // ── Content loading ───────────────────────────────────────────────────
 
-        private void LoadContent(string text, string sourceLabel)
+        private async Task LoadContentAsync(string text, string sourceLabel)
         {
             loadedText = text;
             loadedLabel = sourceLabel;
@@ -87,7 +154,7 @@ namespace Menelaus.Tian.Venus.LogViewer
             searchLastQuery = "";
             SearchStatus.Text = "";
 
-            var (entry, table) = AutoDetectAndParse(text);
+            var (entry, table) = await AutoDetectAndParseAsync(text, sourceLabel);
 
             if (entry != null)
             {
@@ -424,7 +491,7 @@ namespace Menelaus.Tian.Venus.LogViewer
 
         // ── Menu handlers ─────────────────────────────────────────────────────
 
-        private void OpenFile_Click(object sender, RoutedEventArgs eventArgs)
+        private async void OpenFile_Click(object sender, RoutedEventArgs eventArgs)
         {
             var dialog = new OpenFileDialog
             {
@@ -434,11 +501,11 @@ namespace Menelaus.Tian.Venus.LogViewer
 
             if (dialog.ShowDialog() == true)
             {
-                LoadContent(File.ReadAllText(dialog.FileName), dialog.FileName);
+                await LoadContentAsync(File.ReadAllText(dialog.FileName), dialog.FileName);
             }
         }
 
-        private void PasteClipboard_Click(object sender, RoutedEventArgs eventArgs)
+        private async void PasteClipboard_Click(object sender, RoutedEventArgs eventArgs)
         {
             string text = Clipboard.GetText();
             if (string.IsNullOrEmpty(text))
@@ -447,10 +514,10 @@ namespace Menelaus.Tian.Venus.LogViewer
                     MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
-            LoadContent(text, "Clipboard");
+            await LoadContentAsync(text, "Clipboard");
         }
 
-        private void ManagePatterns_Click(object sender, RoutedEventArgs eventArgs)
+        private async void ManagePatterns_Click(object sender, RoutedEventArgs eventArgs)
         {
             new PatternManagerWindow { Owner = this }.ShowDialog();
 
@@ -460,7 +527,7 @@ namespace Menelaus.Tian.Venus.LogViewer
             // Re-parse the currently loaded content with the (possibly new) pattern set
             if (loadedText != null)
             {
-                LoadContent(loadedText, loadedLabel);
+                await LoadContentAsync(loadedText, loadedLabel);
             }
         }
 
@@ -485,6 +552,20 @@ namespace Menelaus.Tian.Venus.LogViewer
         private void Exit_Click(object sender, RoutedEventArgs eventArgs)
         {
             Close();
+        }
+
+        // ── AI config ─────────────────────────────────────────────────────────
+
+        private void UpdateAiButton()
+        {
+            AiConfigBtn.Content = AiConfig.Load()?.ButtonLabel ?? "Configure AI";
+        }
+
+        private void AiConfigBtn_Click(object sender, RoutedEventArgs eventArgs)
+        {
+            var dialog = new AiSetupDialog { Owner = this };
+            if (dialog.ShowDialog() == true)
+                UpdateAiButton();
         }
     }
 }
