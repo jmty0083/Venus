@@ -44,10 +44,10 @@ on:
     paths:
       - 'LogViewer/**'
   workflow_dispatch:
-  pull_request:
-    branches: [ "main" ]
-    paths:
-      - 'LogViewer/**'
+#  pull_request:
+#    branches: [ "main" ]
+#    paths:
+#      - 'LogViewer/**'
 
 permissions:
   contents: write
