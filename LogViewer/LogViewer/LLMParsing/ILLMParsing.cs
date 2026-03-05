@@ -16,5 +16,11 @@ namespace Menelaus.Tian.Venus.LogViewer
         /// Returns the regex string on success, or null on failure / refusal.
         /// </summary>
         Task<string?> TryParsingAsync(IList<string> sampleLines);
+
+        /// <summary>
+        /// Asks the LLM to analyze the log content for errors, warnings, and suspicious patterns.
+        /// Returns a free-text summary, or null on failure.
+        /// </summary>
+        Task<string?> AnalyzeAsync(string logContent);
     }
 }

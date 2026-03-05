@@ -1,0 +1,24 @@
+<Window x:Class="Menelaus.Tian.Venus.LogViewer.LogAnalysisWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AI Log Analysis"
+        Height="420" Width="480"
+        WindowStartupLocation="Manual"
+        ResizeMode="CanResize"
+        ShowInTaskbar="False"
+        Background="{DynamicResource WindowBg}">
+
+    <TextBox x:Name="ResultBox"
+             IsReadOnly="True"
+             TextWrapping="Wrap"
+             AcceptsReturn="True"
+             VerticalScrollBarVisibility="Auto"
+             HorizontalScrollBarVisibility="Disabled"
+             Background="{DynamicResource WindowBg}"
+             Foreground="{DynamicResource PrimaryFg}"
+             BorderThickness="0"
+             Padding="14,12"
+             FontSize="13"
+             Text="Analyzing log content…"/>
+
+</Window>

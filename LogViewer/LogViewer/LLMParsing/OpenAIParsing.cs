@@ -1,6 +1,7 @@
 using System;
 using System.ClientModel;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using OpenAI.Chat;
@@ -16,6 +17,13 @@ namespace Menelaus.Tian.Venus.LogViewer
         private readonly string _endpoint;
         private readonly string _apiKey;
         private readonly string _model;
+
+        private const string AnalysisSystemPrompt =
+            "You are a log analysis expert. Analyze the provided log content and identify:\n" +
+            "- Obvious errors or exceptions\n" +
+            "- Suspicious patterns or anomalies\n" +
+            "- Critical warnings or failures\n" +
+            "Be concise and specific. If nothing notable is found, say so briefly.";
 
         private const string SystemPrompt =
             "You are a log parser expert. Analyze the provided sample log lines and generate " +
@@ -72,6 +80,44 @@ namespace Menelaus.Tian.Venus.LogViewer
 
             string? content = completion.Content[0].Text;
             return ExtractPattern(content);
+        }
+
+        public async Task<string?> AnalyzeAsync(string logContent)
+        {
+            string sample = string.Join('\n', logContent.Split('\n').Take(150));
+
+            var clientOptions = new OpenAI.OpenAIClientOptions
+            {
+                Endpoint = new Uri(_endpoint.TrimEnd('/'))
+            };
+
+            var client = new ChatClient(
+                model:      _model,
+                credential: new ApiKeyCredential(_apiKey),
+                options:    clientOptions);
+
+            var chatOptions = new ChatCompletionOptions
+            {
+                Temperature         = 0.3f,
+                MaxOutputTokenCount = 800
+            };
+
+            ChatCompletion completion;
+            try
+            {
+                completion = await client.CompleteChatAsync(
+                    [
+                        new SystemChatMessage(AnalysisSystemPrompt),
+                        new UserChatMessage($"Log content:\n{sample}")
+                    ],
+                    chatOptions);
+            }
+            catch
+            {
+                return null;
+            }
+
+            return completion.Content[0].Text;
         }
 
         private static string? ExtractPattern(string? content)
