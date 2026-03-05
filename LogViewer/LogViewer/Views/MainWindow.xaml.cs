@@ -20,12 +20,14 @@ namespace Menelaus.Tian.Venus.LogViewer
         private string loadedLabel = "";
         private int searchCurrentIndex = -1;
         private string searchLastQuery = "";
+        private LogAnalysisWindow? _analysisWindow;
 
         public MainWindow(string? initialContent = null, string? sourceLabel = null)
         {
             InitializeComponent();
             SourceInitialized += (_, _) => ThemeManager.ApplyTitleBar(this);
 
+            AiSummaryMenuItem.IsChecked = AiConfig.Load()?.AiSummaryEnabled ?? true;
             UpdateAiButton();
 
             if (initialContent != null)
@@ -144,6 +146,49 @@ namespace Menelaus.Tian.Venus.LogViewer
             return entry;
         }
 
+        // ── AI log analysis ───────────────────────────────────────────────────
+
+        /// <summary>
+        /// Runs after content is loaded. If an AI endpoint is configured, sends the log
+        /// content for analysis and shows the result in a non-blocking side window.
+        /// </summary>
+        private async Task StartAiAnalysisAsync(string text, string sourceLabel)
+        {
+            if (!AiSummaryMenuItem.IsChecked) return;
+
+            var cfg = AiConfig.Load();
+            if (cfg == null) return;
+
+            ILLMParsing? ai = cfg.ActiveTab switch
+            {
+                0 when !string.IsNullOrWhiteSpace(cfg.LlmUrl)
+                    => new LLMParsing(cfg.LlmUrl),
+                1 when !string.IsNullOrWhiteSpace(cfg.Endpoint)
+                    && !string.IsNullOrWhiteSpace(cfg.ApiKey)
+                    => new OpenAIParsing(cfg.Endpoint, cfg.ApiKey, cfg.Model),
+                _ => null
+            };
+
+            if (ai == null) return;
+
+            if (_analysisWindow == null || !_analysisWindow.IsVisible)
+            {
+                _analysisWindow = new LogAnalysisWindow();
+                _analysisWindow.Left = Left + Width + 8;
+                _analysisWindow.Top  = Top;
+                _analysisWindow.Show();
+            }
+            else
+            {
+                _analysisWindow.SetLoading();
+            }
+
+            string? result = await ai.AnalyzeAsync(text);
+
+            if (_analysisWindow?.IsVisible == true)
+                _analysisWindow.SetResult(result ?? "AI did not return a response.");
+        }
+
         // ── Content loading ───────────────────────────────────────────────────
 
         private async Task LoadContentAsync(string text, string sourceLabel)
@@ -202,6 +247,8 @@ namespace Menelaus.Tian.Venus.LogViewer
             {
                 StatusText.Text = $"{sourceLabel}  |  {patternInfo}  |  {total:N0} rows";
             }
+
+            _ = StartAiAnalysisAsync(text, sourceLabel);
         }
 
         private void BindTable(DataTable table)
@@ -547,6 +594,13 @@ namespace Menelaus.Tian.Venus.LogViewer
         {
             ThemeManager.Apply(AppTheme.System);
             PatternStore.SetTheme(AppTheme.System);
+        }
+
+        private void AiSummaryMenuItem_Click(object sender, RoutedEventArgs eventArgs)
+        {
+            var cfg = AiConfig.Load() ?? new AiSettings();
+            cfg.AiSummaryEnabled = AiSummaryMenuItem.IsChecked;
+            AiConfig.Save(cfg);
         }
 
         private void Exit_Click(object sender, RoutedEventArgs eventArgs)

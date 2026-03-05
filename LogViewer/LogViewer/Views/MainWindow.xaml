@@ -92,6 +92,12 @@
                     <MenuItem Header="_Dark Theme"   Click="ThemeDark_Click"/>
                     <MenuItem Header="_Light Theme"  Click="ThemeLight_Click"/>
                     <MenuItem Header="_System Theme" Click="ThemeSystem_Click"/>
+                    <Separator/>
+                    <MenuItem x:Name="AiSummaryMenuItem"
+                              Header="_AI Summary"
+                              IsCheckable="True"
+                              IsChecked="True"
+                              Click="AiSummaryMenuItem_Click"/>
                 </MenuItem>
             </Menu>
         </DockPanel>

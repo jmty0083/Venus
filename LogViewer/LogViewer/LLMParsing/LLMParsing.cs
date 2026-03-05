@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -16,6 +17,12 @@ namespace Menelaus.Tian.Venus.LogViewer
         private static readonly HttpClient Http = new();
 
         private readonly string _url;
+
+        private const string AnalysisPromptTemplate =
+            "You are a log analysis expert. Analyze the following log content and identify " +
+            "any obvious errors, exceptions, warnings, or suspicious patterns. " +
+            "Be concise and specific. If nothing notable is found, say so briefly.\n\n" +
+            "Log content:\n{0}";
 
         // Full prompt sent in the "data" field.  {0} is replaced with the sample lines.
         private const string PromptTemplate =
@@ -59,6 +66,31 @@ namespace Menelaus.Tian.Venus.LogViewer
 
             string json = await response.Content.ReadAsStringAsync();
             return ExtractPattern(json);
+        }
+
+        public async Task<string?> AnalyzeAsync(string logContent)
+        {
+            string sample = string.Join('\n', logContent.Split('\n').Take(150));
+            string prompt = string.Format(AnalysisPromptTemplate, sample);
+
+            var requestBody = new { data = prompt };
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, _url);
+            request.Content = new StringContent(
+                JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response;
+            try
+            {
+                response = await Http.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+            }
+            catch
+            {
+                return null;
+            }
+
+            return await response.Content.ReadAsStringAsync();
         }
 
         private static string? ExtractPattern(string responseJson)

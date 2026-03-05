@@ -20,6 +20,9 @@ namespace Menelaus.Tian.Venus.LogViewer
         // Tab 2 — Script-based plugin
         public string Command   { get; set; } = "";
 
+        /// <summary>Whether to automatically run AI log analysis after each file load.</summary>
+        public bool AiSummaryEnabled { get; set; } = true;
+
         /// <summary>Label shown in the main-window toolbar button.</summary>
         public string ButtonLabel => ActiveTab switch
         {
