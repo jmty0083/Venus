@@ -75,11 +75,11 @@ jobs:
           -o publish
 
     - name: Zip output
-      run: Compress-Archive -Path publish/* -DestinationPath PdfToMarkdown.zip
+      run: Compress-Archive -Path publish/* -DestinationPath PdfToMarkdown-${{ steps.version.outputs.version }}.zip
 
     - name: Release
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: daily
-        name: Daily Build
-        files: PdfToMarkdown.zip
+        tag_name: pdftomarkdown-${{ steps.version.outputs.version }}
+        name: PdfToMarkdown ${{ steps.version.outputs.version }}
+        files: PdfToMarkdown-${{ steps.version.outputs.version }}.zip
