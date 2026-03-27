@@ -39,6 +39,7 @@ jobs:
         } else {
           echo "changed=true" >> $env:GITHUB_OUTPUT
         }
+        exit 0
 
     - name: Stop if no changes
       if: steps.changes.outputs.changed == 'false'
