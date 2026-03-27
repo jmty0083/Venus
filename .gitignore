@@ -13,3 +13,6 @@
 **/.vs
 **/.claude
 /LogViewer/LogViewer/bin/Debug/net10.0-windows
+
+/PdfToMarkdown/PdfToMarkdown/obj
+/PdfToMarkdown/PdfToMarkdown/bin
