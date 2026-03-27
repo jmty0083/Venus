@@ -32,7 +32,8 @@ jobs:
     - name: Check for changes
       id: changes
       run: |
-        git diff --quiet HEAD~1 HEAD -- PdfToMarkdown
+        git fetch origin main
+        git diff --quiet origin/main HEAD -- PdfToMarkdown
         if ($LASTEXITCODE -eq 0) {
           echo "changed=false" >> $env:GITHUB_OUTPUT
         } else {
